@@ -133,6 +133,13 @@ class StreamProcessor:
             "meta": anom.get("meta", {})
         }
         await db.insert_event(event)
+        # Index in Qdrant for semantic search
+        try:
+            from rag.service import rag_service
+            await rag_service.index_event(event)
+        except Exception as ex:
+            logger.debug(f"[StreamProcessor] Qdrant index skipped: {ex}")
+
         # Publish to 'events' topic for real-time WebSocket distribution
         await bus.publish("events", event)
 
