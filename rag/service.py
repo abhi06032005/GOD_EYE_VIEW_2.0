@@ -46,19 +46,33 @@ class RAGService:
             self.encoder = None
 
     def _init_qdrant(self):
+        import socket
         from qdrant_client import QdrantClient
         from qdrant_client.models import VectorParams, Distance
 
-        # Try connecting to external Qdrant server
+        # Quick pre-flight socket check to avoid long grpc/http retry timeouts
+        can_connect = False
         try:
-            client = QdrantClient(host=QDRANT_HOST, port=QDRANT_PORT, timeout=2.0)
-            client.get_collections()
-            self.qdrant = client
-            self.is_embedded_qdrant = False
-            logger.info(f"[SentinelRAG] Connected to Qdrant cluster at {QDRANT_HOST}:{QDRANT_PORT}")
-        except Exception as e:
-            # Fallback to local in-memory Qdrant client
-            logger.info(f"[SentinelRAG] Qdrant server unreachable ({e}). Initializing in-memory Qdrant instance.")
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.settimeout(0.2)
+            s.connect((QDRANT_HOST, int(QDRANT_PORT)))
+            s.close()
+            can_connect = True
+        except Exception:
+            can_connect = False
+
+        if can_connect:
+            try:
+                client = QdrantClient(host=QDRANT_HOST, port=int(QDRANT_PORT), timeout=1.0)
+                client.get_collections()
+                self.qdrant = client
+                self.is_embedded_qdrant = False
+                logger.info(f"[SentinelRAG] Connected to Qdrant cluster at {QDRANT_HOST}:{QDRANT_PORT}")
+            except Exception as e:
+                can_connect = False
+
+        if not can_connect:
+            logger.info(f"[SentinelRAG] Qdrant server unreachable. Initializing in-memory Qdrant instance.")
             self.qdrant = QdrantClient(":memory:")
             self.is_embedded_qdrant = True
 
@@ -130,11 +144,22 @@ class RAGService:
         # 1. Retrieve top-k semantic matches from Qdrant
         retrieved_points = []
         try:
-            hits = self.qdrant.search(
-                collection_name=COLLECTION_NAME,
-                query_vector=query_vector,
-                limit=3
-            )
+            if hasattr(self.qdrant, 'query_points'):
+                res = self.qdrant.query_points(
+                    collection_name=COLLECTION_NAME,
+                    query=query_vector,
+                    limit=3
+                )
+                hits = res.points
+            elif hasattr(self.qdrant, 'search'):
+                hits = self.qdrant.search(
+                    collection_name=COLLECTION_NAME,
+                    query_vector=query_vector,
+                    limit=3
+                )
+            else:
+                hits = []
+
             for h in hits:
                 # Exclude target event itself from references
                 if target_event and h.payload.get("event_id") == target_event.get("id"):

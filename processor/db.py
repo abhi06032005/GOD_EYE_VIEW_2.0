@@ -24,6 +24,7 @@ class SentinelDB:
         self.pg_pool = None
         self.sqlite_conn = None
         self._lock = asyncio.Lock()
+        self._insert_count = 0
 
     async def initialize(self):
         # Try connecting to PostgreSQL if requested or auto
@@ -61,6 +62,10 @@ class SentinelDB:
     def _init_sqlite_schema(self):
         cur = self.sqlite_conn.cursor()
         cur.executescript("""
+        PRAGMA journal_mode = WAL;
+        PRAGMA synchronous = NORMAL;
+        PRAGMA temp_store = MEMORY;
+        PRAGMA cache_size = -64000;
         CREATE TABLE IF NOT EXISTS flights (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             entity_id TEXT NOT NULL,
@@ -168,14 +173,16 @@ class SentinelDB:
                     rec["ts"],
                     meta_json
                 )
-        else:
             async with self._lock:
                 cur = self.sqlite_conn.cursor()
                 cur.execute(
                     f"INSERT INTO {table} (entity_id, source, lat, lon, alt, speed, heading, ts, meta) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
                     (rec["entity_id"], rec["source"], rec["lat"], rec["lon"], rec.get("alt", 0.0), rec.get("speed", 0.0), rec.get("heading", 0.0), rec["ts"], meta_json)
                 )
-                self.sqlite_conn.commit()
+                self._insert_count += 1
+                if self._insert_count % 50 == 0:
+                    self.sqlite_conn.commit()
+
 
     async def insert_detection(self, rec: Dict[str, Any]):
         class_counts_json = json.dumps(rec.get("class_counts", {}))

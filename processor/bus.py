@@ -55,22 +55,40 @@ class SentinelBus:
         self._active_consumers = []
 
     async def start_producer(self):
-        # Check if Kafka / Redpanda is available
+        # Quick pre-flight socket check to avoid spawning lingering background connection loops
+        host, port = "localhost", 9092
+        if ":" in self.bootstrap:
+            parts = self.bootstrap.split(":")
+            host, port = parts[0], int(parts[1])
+        try:
+            reader, writer = await asyncio.wait_for(
+                asyncio.open_connection(host, port),
+                timeout=0.25
+            )
+            writer.close()
+            await writer.wait_closed()
+        except Exception:
+            self.is_kafka = False
+            self.producer = None
+            logger.info(f"[SentinelBus] Redpanda/Kafka unavailable at {self.bootstrap}. Operating with high-speed internal event bus.")
+            return
+
         try:
             from aiokafka import AIOKafkaProducer
-            self.producer = AIOKafkaProducer(
+            producer = AIOKafkaProducer(
                 bootstrap_servers=self.bootstrap,
                 client_id=self.client_id,
                 value_serializer=lambda v: json.dumps(v).encode('utf-8'),
-                request_timeout_ms=2000
+                request_timeout_ms=1000
             )
-            await asyncio.wait_for(self.producer.start(), timeout=2.5)
+            await asyncio.wait_for(producer.start(), timeout=1.0)
+            self.producer = producer
             self.is_kafka = True
             logger.info(f"[SentinelBus] Connected to Redpanda/Kafka producer at {self.bootstrap}")
-            return
         except Exception as e:
             self.is_kafka = False
-            logger.info(f"[SentinelBus] Kafka unavailable ({e}). Using internal asyncio event bus.")
+            self.producer = None
+            logger.info(f"[SentinelBus] Kafka unavailable ({e}). Using internal event bus.")
 
     async def publish(self, topic: str, message: Dict[str, Any]):
         # Always publish to internal bus so local listeners (e.g. WebSocket, eval harness) receive it

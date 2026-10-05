@@ -33,6 +33,13 @@ class StreamProcessor:
     async def initialize(self):
         await db.initialize()
         await bus.start_producer()
+        try:
+            from rag.service import rag_service
+            self.rag_service = rag_service
+            logger.info("[StreamProcessor] RAG service pre-warmed.")
+        except Exception as e:
+            self.rag_service = None
+            logger.debug(f"[StreamProcessor] RAG service pre-warm skipped: {e}")
         logger.info("[StreamProcessor] Initialized DB and Event Bus.")
 
     async def handle_flight(self, topic: str, rec: Dict[str, Any]):
@@ -51,14 +58,27 @@ class StreamProcessor:
         # 2. Rule-based anomaly evaluation
         anomalies = self.rule_engine.evaluate_flight(rec)
         
-        # 3. ML anomaly evaluation
-        ml_anom = self.ml_detector.predict(rec, "flight")
-        if ml_anom:
-            anomalies.append(ml_anom)
+        # 3. ML anomaly evaluation (adaptive cadence for stream scalability)
+        if self.msg_count % 5 == 0 or anomalies:
+            ml_anom = self.ml_detector.predict(rec, "flight")
+            if ml_anom:
+                anomalies.append(ml_anom)
 
         # 4. Dispatch detected anomalies
         for anom in anomalies:
             await self._process_anomaly(anom)
+
+    async def process_flight(self, rec: Dict[str, Any]):
+        await self.handle_flight("flights", rec)
+
+    async def process_ship(self, rec: Dict[str, Any]):
+        await self.handle_ship("ships", rec)
+
+    async def process_quake(self, rec: Dict[str, Any]):
+        await self.handle_quake("quakes", rec)
+
+    async def process_detection(self, rec: Dict[str, Any]):
+        await self.handle_detection("detections", rec)
 
     async def handle_ship(self, topic: str, rec: Dict[str, Any]):
         self.msg_count += 1
@@ -133,10 +153,14 @@ class StreamProcessor:
             "meta": anom.get("meta", {})
         }
         await db.insert_event(event)
-        # Index in Qdrant for semantic search
+        # Index in Qdrant for semantic search asynchronously
         try:
-            from rag.service import rag_service
-            await rag_service.index_event(event)
+            target_rag = self.rag_service if hasattr(self, 'rag_service') and self.rag_service else None
+            if target_rag:
+                asyncio.create_task(target_rag.index_event(event))
+            else:
+                from rag.service import rag_service
+                asyncio.create_task(rag_service.index_event(event))
         except Exception as ex:
             logger.debug(f"[StreamProcessor] Qdrant index skipped: {ex}")
 

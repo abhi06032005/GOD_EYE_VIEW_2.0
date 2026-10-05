@@ -29,7 +29,9 @@ class MLAnomalyDetector:
             path = self._model_path(etype)
             if os.path.exists(path):
                 try:
-                    self.models[etype] = joblib.load(path)
+                    loaded_clf = joblib.load(path)
+                    loaded_clf.n_jobs = 1
+                    self.models[etype] = loaded_clf
                     logger.info(f"[SentinelML] Loaded trained IsolationForest for {etype} from {path}")
                     continue
                 except Exception as e:
@@ -40,7 +42,7 @@ class MLAnomalyDetector:
                 n_estimators=100,
                 contamination=self.contamination,
                 random_state=42,
-                n_jobs=-1
+                n_jobs=1
             )
             # Seed with baseline synthetic standard distributions so it is immediately operational
             if etype == "flight":

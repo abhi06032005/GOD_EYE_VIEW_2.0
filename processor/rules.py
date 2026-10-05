@@ -202,6 +202,25 @@ class AnomalyRuleEngine:
 
         return anomalies
 
+    def check_ais_dark(self, entity_id: str, last_ts: float, current_ts: float, threshold_sec: float = 600.0) -> Optional[Dict[str, Any]]:
+        """Flags vessels whose AIS transponder has gone dark (silent for > threshold_sec)."""
+        dt = current_ts - last_ts
+        if dt >= threshold_sec:
+            return {
+                "id": f"anom_dark_{entity_id}_{int(current_ts)}",
+                "entity_id": entity_id,
+                "entity_type": "ship",
+                "rule_name": "ais_transponder_dark",
+                "severity": "HIGH",
+                "description": f"Maritime Security Alert: AIS signal silent for {dt / 60.0:.1f} minutes (exceeds {threshold_sec / 60.0:.0f} min dark threshold)",
+                "lat": 0.0,
+                "lon": 0.0,
+                "alt": 0.0,
+                "ts": current_ts,
+                "meta": {"silent_seconds": dt, "dark_threshold_sec": threshold_sec}
+            }
+        return None
+
     def evaluate_quake_proximity(self, quake: Dict[str, Any], tracked_entities: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         anomalies = []
         mag = float(quake.get("meta", {}).get("mag") or 0.0)
