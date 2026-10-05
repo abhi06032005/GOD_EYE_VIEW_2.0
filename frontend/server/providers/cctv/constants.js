@@ -244,6 +244,15 @@ export const DELDOT_ANCHORS = [
   { lat: 39.1582, lon: -75.5244 }, // Dover (Kent)
   { lat: 38.6906, lon: -75.3877 }, // Georgetown (Sussex)
 ];
+/** India & Bangalore CCTV source catalog and anchors */
+export const DEFAULT_INDIA_SOURCE_FILE = 'config/cctv_sources.india.json';
+export const DEFAULT_INDIA_MAX_SOURCES = 50;
+export const INDIA_ANCHORS = [
+  { lat: 12.9716, lon: 77.5946 }, // Bangalore CBD
+  { lat: 12.9176, lon: 77.6238 }, // Silk Board
+  { lat: 18.9220, lon: 72.8258 }, // Mumbai
+  { lat: 28.6315, lon: 77.2167 }, // Delhi
+];
 /** Camera CATALOGS change rarely; 15 min keeps multi-megabyte upstream list refetches (Austin rows.json + 4 Caltrans districts + TfL + Ontario 511) infrequent. Frames are fetched per-request and are unaffected. */
 export const CCTV_SOURCE_CACHE_MS = 15 * 60 * 1000;
 /** Per-provider catalog-fetch timeout. Bounds the worst-case refresh so one

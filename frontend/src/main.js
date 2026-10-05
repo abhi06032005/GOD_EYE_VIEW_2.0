@@ -1,6 +1,7 @@
 import { createStandaloneApplication } from './standalone/application.js';
 import { describeError } from './standalone/errors.js';
 import sentinelAdapter from './sentinel_adapter.js';
+import { initAiBot } from './ui/aiBot.js';
 
 const application = createStandaloneApplication({
   googleApiKey: import.meta.env.GOOGLE_MAPS_API_KEY,
@@ -12,6 +13,16 @@ application.start().then((components) => {
   if (components && components.scene && components.scene.viewer) {
     sentinelAdapter.setViewer(components.scene.viewer);
     window._cesiumViewer = components.scene.viewer;
+  }
+  window._gevComponents = components;
+  if (components?.scene?.viewer && components?.controls?.styleManager) {
+    initAiBot({
+      viewer: components.scene.viewer,
+      styleManager: components.controls.styleManager,
+      dataManager: components.data?.dataManager,
+      placeSearch: components.controls.styleManager?.placeSearch,
+      scene: components.scene,
+    });
   }
 }).catch((error) => {
   console.error("God's Eye View initialization failed:", error);

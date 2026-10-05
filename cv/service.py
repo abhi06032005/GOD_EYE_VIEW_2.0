@@ -22,12 +22,16 @@ SAMPLE_VIDEO = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__fi
 YOLO_MODEL_NAME = os.getenv("YOLO_MODEL", "yolov8n.pt")
 CONF_THRESHOLD = float(os.getenv("CV_CONF_THRESHOLD", "0.35"))
 
-# Monitored camera stations with geographic coordinates
+# Monitored camera stations with geographic coordinates (India & Bangalore)
 CAMERAS = [
-    {"id": "cam_sfo_101", "name": "US-101 at Airport Blvd (SFO)", "lat": 37.6213, "lon": -122.3790, "stream": SAMPLE_VIDEO},
-    {"id": "cam_lax_405", "name": "I-405 at Century Blvd (LAX)", "lat": 33.9455, "lon": -118.3750, "stream": SAMPLE_VIDEO},
-    {"id": "cam_nyc_fdr", "name": "FDR Drive at 42nd St", "lat": 40.7484, "lon": -73.9680, "stream": SAMPLE_VIDEO},
-    {"id": "cam_atx_35", "name": "I-35 at 6th Street", "lat": 30.2672, "lon": -97.7380, "stream": SAMPLE_VIDEO}
+    {"id": "cam_blr_silkboard", "name": "Silk Board Junction (Bangalore)", "lat": 12.9176, "lon": 77.6238, "stream": SAMPLE_VIDEO},
+    {"id": "cam_blr_mgroad", "name": "MG Road & Brigade Rd (Bangalore)", "lat": 12.9740, "lon": 77.6080, "stream": SAMPLE_VIDEO},
+    {"id": "cam_blr_hebbal", "name": "Hebbal Flyover Expressway (Bangalore)", "lat": 13.0358, "lon": 77.5970, "stream": SAMPLE_VIDEO},
+    {"id": "cam_blr_ecity", "name": "Electronic City Elevated Tollway (Bangalore)", "lat": 12.8452, "lon": 77.6602, "stream": SAMPLE_VIDEO},
+    {"id": "cam_blr_majestic", "name": "Majestic Station Crossing (Bangalore)", "lat": 12.9778, "lon": 77.5713, "stream": SAMPLE_VIDEO},
+    {"id": "cam_blr_orr", "name": "Outer Ring Road - Bellandur (Bangalore)", "lat": 12.9304, "lon": 77.6784, "stream": SAMPLE_VIDEO},
+    {"id": "cam_mum_marinedrive", "name": "Marine Drive Promenade (Mumbai)", "lat": 18.9220, "lon": 72.8258, "stream": SAMPLE_VIDEO},
+    {"id": "cam_del_cp", "name": "Connaught Place Traffic Hub (Delhi)", "lat": 28.6315, "lon": 77.2167, "stream": SAMPLE_VIDEO}
 ]
 
 # COCO target classes for traffic/multimodal awareness

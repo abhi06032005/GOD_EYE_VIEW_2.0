@@ -24,6 +24,61 @@ let arrivalGeneration = 0;
  *   buildingHeight — estimated height of landmark center above ground (meters)
  */
 export const CITY_POIS = {
+  bangalore: {
+    name: 'Bangalore',
+    groundElevation: 920,
+    viewBounds: {
+      southwest: { lat: 12.78, lng: 77.42 },
+      northeast: { lat: 13.22, lng: 77.78 },
+    },
+    pois: [
+      {
+        name: 'Vidhana Soudha',
+        lat: 12.9796,
+        lon: 77.5907,
+        alt: 650,
+        pitch: -28,
+        heading: 90,
+        buildingHeight: 45,
+      },
+      {
+        name: 'Kempegowda International Airport (BLR)',
+        lat: 13.1986,
+        lon: 77.7066,
+        alt: 1200,
+        pitch: -25,
+        heading: 0,
+        buildingHeight: 35,
+      },
+      {
+        name: 'UB City',
+        lat: 12.9716,
+        lon: 77.596,
+        alt: 550,
+        pitch: -22,
+        heading: 45,
+        buildingHeight: 128,
+      },
+      {
+        name: 'Bangalore Palace',
+        lat: 12.9988,
+        lon: 77.5921,
+        alt: 600,
+        pitch: -30,
+        heading: 180,
+        buildingHeight: 30,
+      },
+      {
+        name: 'Electronic City Tech Hub',
+        lat: 12.8452,
+        lon: 77.6602,
+        alt: 850,
+        pitch: -25,
+        heading: 315,
+        buildingHeight: 50,
+      },
+    ],
+  },
   austin: {
     name: 'Austin',
     groundElevation: 150, // meters above WGS84 ellipsoid

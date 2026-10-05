@@ -17,10 +17,14 @@ class SentinelAdapter {
     this.ws = null;
     this.alerts = [];
     this.cameras = [
-      { id: "cam_sfo_101", name: "US-101 at Airport Blvd (SFO)", counts: { car: 14, truck: 3, bus: 1, person: 0 } },
-      { id: "cam_lax_405", name: "I-405 at Century Blvd (LAX)", counts: { car: 22, truck: 5, bus: 2, person: 1 } },
-      { id: "cam_nyc_fdr", name: "FDR Drive at 42nd St", counts: { car: 18, truck: 2, bus: 3, person: 4 } },
-      { id: "cam_atx_35", name: "I-35 at 6th St (Austin)", counts: { car: 9, truck: 1, bus: 0, person: 2 } }
+      { id: "cam_blr_silkboard", name: "Silk Board Junction (Bangalore)", counts: { car: 42, truck: 8, bus: 6, person: 12 }, lat: 12.9176, lon: 77.6238 },
+      { id: "cam_blr_mgroad", name: "MG Road & Brigade Rd (Bangalore)", counts: { car: 28, truck: 2, bus: 4, person: 19 }, lat: 12.9740, lon: 77.6080 },
+      { id: "cam_blr_hebbal", name: "Hebbal Flyover Expressway (Bangalore)", counts: { car: 35, truck: 11, bus: 5, person: 2 }, lat: 13.0358, lon: 77.5970 },
+      { id: "cam_blr_ecity", name: "Electronic City Elevated Tollway (Bangalore)", counts: { car: 24, truck: 4, bus: 3, person: 1 }, lat: 12.8452, lon: 77.6602 },
+      { id: "cam_blr_majestic", name: "Majestic Terminal Crossing (Bangalore)", counts: { car: 19, truck: 5, bus: 14, person: 34 }, lat: 12.9778, lon: 77.5713 },
+      { id: "cam_blr_orr", name: "Outer Ring Road - Bellandur (Bangalore)", counts: { car: 38, truck: 6, bus: 7, person: 8 }, lat: 12.9304, lon: 77.6784 },
+      { id: "cam_mum_marinedrive", name: "Marine Drive Promenade (Mumbai)", counts: { car: 31, truck: 1, bus: 2, person: 15 }, lat: 18.9220, lon: 72.8258 },
+      { id: "cam_del_cp", name: "Connaught Place Traffic Hub (Delhi)", counts: { car: 26, truck: 3, bus: 5, person: 21 }, lat: 28.6315, lon: 77.2167 }
     ];
     this.metrics = {
       msgs_per_sec: 0,
@@ -160,12 +164,16 @@ class SentinelAdapter {
         color: #000;
       }
 
-      /* CV Panel */
+      /* CV Panel - docked on the right side and toggleable */
       #sentinel-cv-panel {
+        display: none;
         position: fixed;
-        bottom: 65px;
-        left: 15px;
+        bottom: 50px;
+        right: 15px;
+        left: auto;
         width: 320px;
+        max-height: 420px;
+        overflow-y: auto;
         background: var(--sentinel-bg);
         border: 1px solid var(--sentinel-border);
         border-radius: 8px;
@@ -273,17 +281,22 @@ class SentinelAdapter {
     `;
     document.body.appendChild(alertsPanel);
 
-    // 2. CV Panel
+    // 2. CV Panel (Hidden by default to prevent obscuring the AI Bot)
     const cvPanel = document.createElement('div');
     cvPanel.id = 'sentinel-cv-panel';
+    cvPanel.style.display = 'none';
     cvPanel.innerHTML = `
-      <div class="sentinel-header">
+      <div class="sentinel-header" style="display:flex; justify-content:space-between; align-items:center;">
         <span>📹 YOLOv8 TRAFFIC CV INSPECTOR</span>
+        <button id="sentinel-cv-close-btn" class="sentinel-btn" style="padding:1px 7px; font-size:11px;" title="Close Traffic Inspector">✕</button>
       </div>
       <div id="sentinel-cv-list">
         ${this.cameras.map(c => `
-          <div class="cv-cam-item">
-            <div style="font-weight:600;">${c.name}</div>
+          <div class="cv-cam-item" data-cam-lat="${c.lat}" data-cam-lon="${c.lon}" style="cursor:pointer;" title="Click to fly to this camera">
+            <div style="font-weight:600; display:flex; justify-content:space-between; align-items:center;">
+              <span>${c.name}</span>
+              <span style="font-size:9px; color:var(--sentinel-cyan); background:rgba(0,229,255,0.15); padding:1px 5px; border-radius:3px;">FLY 🎯</span>
+            </div>
             <div class="cv-counts">
               <span>🚗 ${c.counts.car} cars</span>
               <span>🚚 ${c.counts.truck} trucks</span>
@@ -296,13 +309,25 @@ class SentinelAdapter {
     `;
     document.body.appendChild(cvPanel);
 
+    cvPanel.addEventListener('click', (e) => {
+      const item = e.target.closest('[data-cam-lat]');
+      if (item) {
+        const lat = parseFloat(item.dataset.camLat);
+        const lon = parseFloat(item.dataset.camLon);
+        if (Number.isFinite(lat) && Number.isFinite(lon)) {
+          this.flyToEntity(lat, lon, 800);
+        }
+      }
+    });
+
     // 3. Metrics Footer
     const footer = document.createElement('div');
     footer.id = 'sentinel-footer';
     footer.innerHTML = `
-      <div style="display:flex; align-items:center; gap:12px;">
+      <div style="display:flex; align-items:center; gap:10px;">
         <span style="font-weight:700; color:var(--sentinel-cyan);">🛰️ SENTINEL-AI</span>
         <button id="sentinel-mode-btn" class="mode-toggle">REPLAY MODE</button>
+        <button id="sentinel-cv-toggle-btn" class="sentinel-btn" title="Toggle YOLOv8 Traffic CV Inspector">📹 TRAFFIC CV</button>
       </div>
       <div id="sentinel-metrics-display" style="display:flex; gap:16px;">
         <span>⚡ 0.0 msgs/s</span>
@@ -332,6 +357,20 @@ class SentinelAdapter {
       modal.style.display = 'none';
     });
 
+    // Traffic CV Toggle Handler
+    const toggleCv = () => {
+      const isVisible = cvPanel.style.display !== 'none';
+      cvPanel.style.display = isVisible ? 'none' : 'block';
+      const cvBtn = document.getElementById('sentinel-cv-toggle-btn');
+      if (cvBtn) {
+        cvBtn.style.background = isVisible ? '' : 'var(--sentinel-cyan)';
+        cvBtn.style.color = isVisible ? '' : '#000';
+      }
+    };
+
+    document.getElementById('sentinel-cv-close-btn')?.addEventListener('click', toggleCv);
+    document.getElementById('sentinel-cv-toggle-btn')?.addEventListener('click', toggleCv);
+
     // Mode Toggle Click
     document.getElementById('sentinel-mode-btn').addEventListener('click', () => {
       this.mode = this.mode === 'REPLAY' ? 'LIVE' : 'REPLAY';
@@ -352,7 +391,7 @@ class SentinelAdapter {
 
       this.ws.onmessage = (event) => {
         try {
-          const msg = json.parse(event.data);
+          const msg = JSON.parse(event.data);
           this.handleIncomingMessage(msg);
         } catch (e) {
           // ignore parsing error
@@ -440,15 +479,17 @@ class SentinelAdapter {
   }
 
   flyToEntity(lat, lon, height = 15000) {
-    if (!this.viewer || !window.Cesium) {
+    if (!this.viewer) {
       console.warn('[SentinelAI] Cesium Viewer not ready for camera flyTo.');
       return;
     }
-    console.log(`[SentinelAI] Flying camera to: Lat ${lat}, Lon ${lon}, Alt ${height}m`);
-    this.viewer.camera.flyTo({
-      destination: window.Cesium.Cartesian3.fromDegrees(lon, lat, height),
-      duration: 2.5
-    });
+    const Cesium = globalThis.Cesium || window.Cesium || this.viewer.constructor.Cesium;
+    if (Cesium?.Cartesian3?.fromDegrees) {
+      this.viewer.camera.flyTo({
+        destination: Cesium.Cartesian3.fromDegrees(lon, lat, height),
+        duration: 2.0
+      });
+    }
   }
 
   async openExplainModal(alert) {
@@ -485,8 +526,11 @@ class SentinelAdapter {
       const list = document.getElementById('sentinel-cv-list');
       if (list) {
         list.innerHTML = this.cameras.map(c => `
-          <div class="cv-cam-item">
-            <div style="font-weight:600;">${c.name}</div>
+          <div class="cv-cam-item" data-cam-lat="${c.lat}" data-cam-lon="${c.lon}" style="cursor:pointer;" title="Click to fly to this camera">
+            <div style="font-weight:600; display:flex; justify-content:space-between; align-items:center;">
+              <span>${c.name}</span>
+              <span style="font-size:9px; color:var(--sentinel-cyan); background:rgba(0,229,255,0.15); padding:1px 5px; border-radius:3px;">FLY 🎯</span>
+            </div>
             <div class="cv-counts">
               <span>🚗 ${c.counts.car || 0} cars</span>
               <span>🚚 ${c.counts.truck || 0} trucks</span>

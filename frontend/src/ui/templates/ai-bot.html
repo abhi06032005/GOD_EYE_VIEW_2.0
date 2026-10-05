@@ -1,0 +1,130 @@
+  <!-- GEV Regional AI Bot: Spatial Intelligence & Telemetry Co-pilot -->
+  <aside id="ai-bot-sidebar" class="ai-bot-sidebar" role="region" aria-label="AI Regional Intelligence Assistant">
+    <div class="ai-bot-glow" aria-hidden="true"></div>
+    <div class="ai-bot-scanline" aria-hidden="true"></div>
+    
+    <!-- Bot Header -->
+    <header class="ai-bot-header">
+      <div class="ai-bot-identity">
+        <div class="ai-bot-avatar" aria-hidden="true">
+          <span class="ai-bot-avatar-ring"></span>
+          <span class="ai-bot-avatar-core">✦</span>
+        </div>
+        <div class="ai-bot-title-group">
+          <div class="ai-bot-title">GEV REGIONAL AI</div>
+          <div class="ai-bot-status">
+            <span class="ai-bot-status-beacon" aria-hidden="true"></span>
+            <span class="ai-bot-status-text">ONLINE · READY</span>
+          </div>
+        </div>
+      </div>
+      <div class="ai-bot-header-actions">
+        <button id="ai-bot-clear-btn" class="ai-bot-icon-btn" type="button" title="Clear conversation" aria-label="Clear chat">
+          <span aria-hidden="true">🧹</span>
+        </button>
+        <button id="ai-bot-minimize-btn" class="ai-bot-icon-btn" type="button" title="Minimize AI Bot" aria-label="Minimize AI Bot">
+          <span aria-hidden="true">✕</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Bot Messages / Feed -->
+    <div id="ai-bot-messages" class="ai-bot-messages" role="log" aria-live="polite">
+      <!-- Initial Welcome Card -->
+      <div class="ai-message ai-message-bot" data-message-role="bot">
+        <div class="ai-message-bubble">
+          <div class="ai-welcome-badge">SPATIAL COPILOT ACTIVE</div>
+          <h3 class="ai-welcome-heading">Welcome to God's Eye View</h3>
+          <p class="ai-welcome-desc">
+            Tell me any city or region you want to explore (e.g. <em>"I want Bangalore data"</em>, <em>"Tokyo"</em>, <em>"San Francisco"</em>).
+            I will fly the 3D globe there in the background and discover all live telemetry streams available for that area.
+          </p>
+          <div class="ai-quick-regions-header">QUICK REGIONAL INTELLIGENCE:</div>
+          <div class="ai-quick-regions" role="group" aria-label="Suggested Regions">
+            <button type="button" class="ai-region-chip" data-region-query="bangalore">
+              <span class="ai-chip-flag">🇮🇳</span> Bangalore (Bengaluru)
+            </button>
+            <button type="button" class="ai-region-chip" data-region-query="tokyo">
+              <span class="ai-chip-flag">🇯🇵</span> Tokyo
+            </button>
+            <button type="button" class="ai-region-chip" data-region-query="sanfrancisco">
+              <span class="ai-chip-flag">🇺🇸</span> San Francisco
+            </button>
+            <button type="button" class="ai-region-chip" data-region-query="london">
+              <span class="ai-chip-flag">🇬🇧</span> London
+            </button>
+            <button type="button" class="ai-region-chip" data-region-query="dubai">
+              <span class="ai-chip-flag">🇦🇪</span> Dubai
+            </button>
+            <button type="button" class="ai-region-chip" data-region-query="newyork">
+              <span class="ai-chip-flag">🇺🇸</span> New York
+            </button>
+            <button type="button" class="ai-region-chip" data-region-query="mumbai">
+              <span class="ai-chip-flag">🇮🇳</span> Mumbai
+            </button>
+            <button type="button" class="ai-region-chip" data-region-query="paris">
+              <span class="ai-chip-flag">🇫🇷</span> Paris
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Region Floating HUD bar inside bot -->
+    <div id="ai-active-region-bar" class="ai-active-region-bar" hidden>
+      <div class="ai-active-region-info">
+        <span class="ai-active-region-label">TRACKING:</span>
+        <strong id="ai-active-region-name">--</strong>
+      </div>
+      <div class="ai-active-layers-count">
+        <span id="ai-active-layers-num">0</span> FEEDS STREAMING
+      </div>
+    </div>
+
+    <!-- Input Form -->
+    <form id="ai-bot-form" class="ai-bot-form" autocomplete="off">
+      <div class="ai-input-wrap">
+        <input
+          type="text"
+          id="ai-bot-input"
+          class="ai-bot-input"
+          placeholder="Ask AI Bot (e.g. 'I want Bangalore data')..."
+          aria-label="Ask AI Bot for a region or data query"
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <button
+          type="button"
+          id="ai-bot-voice-btn"
+          class="ai-bot-voice-btn"
+          title="Voice command"
+          aria-label="Use voice input"
+        >
+          <span aria-hidden="true">🎙️</span>
+        </button>
+        <button
+          type="submit"
+          id="ai-bot-submit-btn"
+          class="ai-bot-submit-btn"
+          title="Send query"
+          aria-label="Send message"
+        >
+          <span aria-hidden="true">➤</span>
+        </button>
+      </div>
+    </form>
+  </aside>
+
+  <!-- Floating Toggle Button (Visible when minimized) -->
+  <button
+    id="ai-bot-toggle-btn"
+    class="ai-bot-toggle-btn"
+    type="button"
+    aria-expanded="true"
+    aria-controls="ai-bot-sidebar"
+    title="Open AI Regional Intelligence Assistant"
+  >
+    <span class="ai-bot-toggle-beacon" aria-hidden="true"></span>
+    <span class="ai-bot-toggle-icon" aria-hidden="true">✦</span>
+    <span class="ai-bot-toggle-label">AI BOT · REGIONAL INTEL</span>
+  </button>

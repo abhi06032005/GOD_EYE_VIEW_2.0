@@ -59,6 +59,9 @@ import {
   DELDOT_CCTV_URL,
   DEFAULT_DELDOT_MAX_SOURCES,
   DELDOT_ANCHORS,
+  DEFAULT_INDIA_SOURCE_FILE,
+  DEFAULT_INDIA_MAX_SOURCES,
+  INDIA_ANCHORS,
 } from './constants.js';
 import {
   toFiniteNumber,
@@ -79,6 +82,7 @@ import {
   cameraDisplayCode,
   rowArrayToObject,
   prioritizeSources,
+  normalizeSourceItem,
 } from './normalize.js';
 import { directionToHeading } from '../../../src/data/directionText.js';
 import { readResponseJsonCapped } from '../common/http.js';
@@ -1073,6 +1077,59 @@ export function loadTallinnSourcesFromCatalog({
   const prioritized = prioritizeSources(unique, maxCount, [TALLINN_CENTER]);
   console.log(
     `[CCTV] Loaded Tallinn camera sources: ${unique.length} (using nearest ${prioritized.length})`,
+  );
+  return prioritized;
+}
+
+/**
+ * Load India and Bangalore traffic cameras from curated catalog.
+ *
+ * @returns {Array<object>} Normalized camera source objects.
+ */
+export function loadIndiaSourcesFromCatalog({
+  sourceRoot = process.cwd(),
+} = {}) {
+  const sourceFile =
+    process.env.CCTV_INDIA_SOURCES_FILE || DEFAULT_INDIA_SOURCE_FILE;
+  const resolved = path.isAbsolute(sourceFile)
+    ? sourceFile
+    : path.resolve(sourceRoot, sourceFile);
+  let rows = [];
+  try {
+    if (!fs.existsSync(resolved)) {
+      console.warn('[CCTV] India source file missing:', resolved);
+      return [];
+    }
+    const parsed = JSON.parse(fs.readFileSync(resolved, 'utf8'));
+    rows = Array.isArray(parsed) ? parsed : [];
+  } catch (error) {
+    console.warn('[CCTV] India source read error:', error);
+    return [];
+  }
+
+  const cameras = [];
+  const seen = new Set();
+  for (const item of rows) {
+    const cameraId = String(item.id || '').trim();
+    if (!cameraId || seen.has(cameraId)) continue;
+    seen.add(cameraId);
+
+    const lat = toFiniteNumber(item.lat, NaN);
+    const lon = toFiniteNumber(item.lon, NaN);
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) continue;
+
+    cameras.push(normalizeSourceItem(item));
+  }
+
+  const maxRaw = Number(
+    process.env.CCTV_INDIA_MAX_SOURCES || DEFAULT_INDIA_MAX_SOURCES,
+  );
+  const maxCount = Number.isFinite(maxRaw)
+    ? Math.max(4, Math.min(200, Math.floor(maxRaw)))
+    : DEFAULT_INDIA_MAX_SOURCES;
+  const prioritized = prioritizeSources(cameras, maxCount, INDIA_ANCHORS);
+  console.log(
+    `[CCTV] Loaded India/Bangalore camera sources: ${cameras.length} registered (using ${prioritized.length})`,
   );
   return prioritized;
 }
