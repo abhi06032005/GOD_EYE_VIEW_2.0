@@ -182,21 +182,6 @@ make test
 # Or: python -m pytest tests/ -v
 ```
 
----
-
-## Erasmus Mundus Master's Tailoring
-
-SentinelAI was designed to demonstrate specific core competencies required across top Erasmus Mundus joint master's programs. See detailed 150-word abstracts and empirical metric-backed CV bullets in [docs/PROGRAM_TAILORING.md](docs/PROGRAM_TAILORING.md):
-
-- **EDISS** (*Engineering of Data-Intensive Software Systems*): Event-driven messaging, Redpanda stream architecture, sub-millisecond latency, and dual-tier spatial/vector persistence.
-- **CoDaS** (*Communications and Data Science*): Statistical ML modeling, kinematic feature engineering, signal drift classification, and Isolation Forest vs. heuristic trade-offs.
-- **CYBERSURE** (*Cybersecurity and Safety*): ADS-B spoofing defense, physical kinematic consistency checks, unauthorized squawk validation, and critical infrastructure protection.
-- **IMLEX** (*Imaging and Light in Extended Reality*): 3D geospatial digital twins in CesiumJS, smooth camera kinematics, and 11.7 FPS edge YOLOv8 computer vision.
-- **SMACCs** (*Smart Cities and Communities*): Urban mobility analytics, privacy-by-design CCTV monitoring, multimodal seismic hazard correlation, and offline continuity.
-- **EMSSE** (*European Master in Systems Engineering*): End-to-end verification harness, model lifecycle validation, graceful fault-tolerant degradation, and CI automation.
-- **CLIDE** (*Cloud Computing and Digital Governance*): Sovereign self-hostable microservices, transparent AI with 0% hallucination guarantees, and GDPR-compliant video metadata extraction.
-
----
 
 ## Demo Script
 
